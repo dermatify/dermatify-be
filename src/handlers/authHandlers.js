@@ -1,5 +1,6 @@
 const { google } = require("googleapis");
 const { authorizationURL, oauth2Client } = require("../config/oauth");
+const { mainCollection } = require("../config/userDB");
 
 function authHandler(request, reply) {
   return reply.redirect(authorizationURL);
@@ -18,11 +19,19 @@ async function authCallbackHandler(request, reply) {
 
   const { data } = await oauth2.userinfo.get();
 
-  var response = {
-    data: data,
+  let user = await mainCollection.doc(data.id).get();
+
+  var userData = {
+    email: data.email,
+    name: data.name,
   };
 
-  return response;
+  if (!user.exists) {
+    await mainCollection.doc(data.id).set(userData);
+    return "User created!";
+  } else {
+    return "Dummy tokens";
+  }
 }
 
 module.exports = {
