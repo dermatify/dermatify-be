@@ -1,7 +1,8 @@
-const { authorizationURL } = require("../config/oauth");
+const { google } = require("googleapis");
+const { authorizationURL, oauth2Client } = require("../config/oauth");
 
 function authHandler(request, reply) {
-  reply.redirect(authorizationURL);
+  return reply.redirect(authorizationURL);
 }
 
 async function authCallbackHandler(request, reply) {
@@ -15,7 +16,7 @@ async function authCallbackHandler(request, reply) {
     version: "v2",
   });
 
-  const { data } = oauth2.userinfo.get();
+  const { data } = await oauth2.userinfo.get();
 
   var response = {
     data: data,
