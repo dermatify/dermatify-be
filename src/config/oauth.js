@@ -7,12 +7,12 @@ const { google } = require("googleapis");
 const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
-  "http://localhost:3000/auth/google/callback"
+  process.env.GOOGLE_AUTH_CALLBACK_URL,
 );
 
 const scopes = [
-  "https://www.googleapis.com/auth/userinfo.email",
-  "https://www.googleapis.com/auth/userinfo.profile",
+  process.env.GOOGLE_APIS_EMAIL,
+  process.env.GOOGLE_APIS_PROFILE,
 ];
 
 const authorizationURL = oauth2Client.generateAuthUrl({
