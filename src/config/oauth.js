@@ -1,4 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({
+  path: [".env.dev"],
+});
 
 const { google } = require("googleapis");
 
@@ -19,9 +21,8 @@ const authorizationURL = oauth2Client.generateAuthUrl({
   include_granted_scopes: true,
 });
 
-
 module.exports = {
-    oauth2Client,
-    scopes,
-    authorizationURL
+  oauth2Client,
+  scopes,
+  authorizationURL,
 };
