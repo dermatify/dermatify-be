@@ -23,29 +23,24 @@ async function authCallbackHandler(request, reply) {
 
   let user = await mainCollection.doc(data.id).get();
 
-  var userData = {
-    email: data.email,
-    name: data.name,
-    picture: data.picture,
-  };
+  const refresh_token = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d",
+  });
 
-  if (!user.exists) {
-    await mainCollection.doc(data.id).set(userData);
-    return "User created!";
-  }
-
-  payload = {
-    id: data.id,
-    email: data.email,
-    name: data.name,
-    picture: data.picture,
-  };
-
-  const refresh_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+  const access_token = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
-  const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15m",
+
+  if (!user.exists) {
+    await mainCollection.doc(data.id).set(data);
+  }
+
+  user.refresh_token = refresh_token;
+  user.access_token = access_token;
+
+  await mainCollection.doc(data.id).update({
+    refresh_token: refresh_token,
+    access_token: access_token,
   });
 
   response = {
@@ -54,8 +49,6 @@ async function authCallbackHandler(request, reply) {
   };
 
   return response;
-
-  return token;
 }
 
 module.exports = {
