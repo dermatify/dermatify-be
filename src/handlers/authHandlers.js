@@ -1,7 +1,6 @@
 const { google } = require("googleapis");
 const { authorizationURL, oauth2Client } = require("../config/oauth");
 const { mainCollection } = require("../config/userDB");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 function authHandler(request, reply) {
@@ -48,10 +47,6 @@ async function authCallbackHandler(request, reply) {
   };
 
   return response;
-}
-
-function renew(request, reply) {
-  const headers = request.headers;
 }
 
 module.exports = {
