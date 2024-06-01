@@ -31,17 +31,16 @@ async function authCallbackHandler(request, reply) {
     expiresIn: "15m",
   });
 
-  if (!user.exists) {
-    await mainCollection.doc(data.id).set(data);
-  }
-
-  user.refresh_token = refresh_token;
-  user.access_token = access_token;
-
-  await mainCollection.doc(data.id).update({
+  var userData = {
+    ...data,
     refresh_token: refresh_token,
     access_token: access_token,
-  });
+    is_active: true,
+  };
+
+  if (!user.exists) {
+    await mainCollection.doc(data.id).set(userData);
+  }
 
   response = {
     refresh_token: refresh_token,
@@ -49,6 +48,10 @@ async function authCallbackHandler(request, reply) {
   };
 
   return response;
+}
+
+function renew(request, reply) {
+  const headers = request.headers;
 }
 
 module.exports = {
