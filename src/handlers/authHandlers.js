@@ -1,7 +1,9 @@
 const { google } = require("googleapis");
 const { authorizationURL, oauth2Client } = require("../config/oauth");
-const { mainCollection } = require("../config/userDB");
+const { saveUser, getUser } = require("../config/userDB");
+const { checkValidEmail, createUserData } = require("../helpers/authHelpers");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 function authHandler(request, reply) {
   return reply.redirect(authorizationURL);
@@ -20,30 +22,67 @@ async function authCallbackHandler(request, reply) {
 
   const { data } = await oauth2.userinfo.get();
 
-  let user = await mainCollection.doc(data.id).get();
+  let user = getUser(data.email);
 
-  const refresh_token = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET, {
+  const refreshToken = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
   });
 
-  const access_token = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
+  const accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
 
-  var userData = {
-    ...data,
-    refresh_token: refresh_token,
-    access_token: access_token,
-    is_active: true,
-  };
+  const userData = createUserData(
+    data.name,
+    data.picture,
+    refreshToken,
+    accessToken,
+    null,
+    true
+  );
 
   if (!user.exists) {
-    await mainCollection.doc(data.id).set(userData);
+    saveUser(data.email, userData);
   }
 
   response = {
-    refresh_token: refresh_token,
-    access_token: access_token,
+    refresh_token: refreshToken,
+    access_token: accessToken,
+  };
+
+  return response;
+}
+
+async function register(request, reply) {
+  const salt = await bcrypt.genSalt(10);
+  const payload = request.payload;
+
+  const name = payload.name;
+  const email = payload.email;
+  const password = payload.email;
+
+  if (!name || !email || !password) {
+    throw new EmptyFieldError(
+      "Name, username, and password are required fields!"
+    );
+  }
+  if (!checkValidEmail(email)) {
+    throw new EmailInvalidError("Email is invalid!");
+  }
+
+  let user = getUser(email);
+  if (user.exists) {
+    throw new UserExistsError("User already exists!");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, salt);
+  saveUser(
+    email,
+    createUserData(name, null, null, null, hashedPassword, false)
+  );
+
+  const response = {
+    message: "User created!",
   };
 
   return response;
@@ -52,4 +91,5 @@ async function authCallbackHandler(request, reply) {
 module.exports = {
   authHandler,
   authCallbackHandler,
+  register,
 };

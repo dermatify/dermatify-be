@@ -1,4 +1,4 @@
-const { authHandler, authCallbackHandler } = require("../handlers/authHandlers");
+const { authHandler, authCallbackHandler, register } = require("../handlers/authHandlers");
 
 const auth = [
   {
@@ -11,6 +11,11 @@ const auth = [
     path: "/auth/google/callback",
     handler: authCallbackHandler,
   },
+  {
+    method: "POST",
+    path: "/auth/register",
+    handler: register
+  }
 ];
 
 module.exports = auth;
