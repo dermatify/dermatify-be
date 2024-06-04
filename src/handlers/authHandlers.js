@@ -4,6 +4,7 @@ const { saveUser, getUser, updateUser } = require("../config/userDB");
 const { checkValidEmail, createUserData } = require("../helpers/authHelpers");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const Boom = require("@hapi/boom");
 
 function authHandler(request, reply) {
   return reply.redirect(authorizationURL);
@@ -70,16 +71,16 @@ async function register(request, reply) {
   const password = payload.password;
 
   if (!name || !email || !password) {
-    throw new Error("Name, username, and password are required fields!");
+    throw Boom.badRequest("Name, username, and password are required fields!");
   }
   if (!checkValidEmail(email)) {
-    throw new Error("Email is invalid!");
+    throw Boom.badRequest("Email is invalid!");
   }
 
   let user = await getUser(email);
 
   if (user.exists) {
-    throw new Error("User already exists!");
+    throw Boom.badRequest("User already exists!");
   }
 
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -106,12 +107,12 @@ async function login(request, reply) {
   var userData = user.data();
 
   if (!user.exists) {
-    throw new Error("User not found!");
+    throw Boom.badRequest("User not found!");
   }
 
   const isValid = await bcrypt.compare(password, userData.hashedPassword);
   if (!isValid) {
-    throw new Error("Invalid credentials!");
+    throw Boom.unauthorized("Invalid credentials!");
   }
 
   const refreshToken = jwt.sign(
