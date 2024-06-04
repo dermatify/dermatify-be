@@ -12,7 +12,12 @@ async function getUser(email) {
   return user;
 }
 
+async function updateUser(email, data) {
+  await mainCollection.doc(email).update(data);
+}
+
 module.exports = {
   saveUser,
   getUser,
+  updateUser,
 };
