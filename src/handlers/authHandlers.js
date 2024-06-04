@@ -55,8 +55,8 @@ async function authCallbackHandler(request, reply) {
   }
 
   response = {
-    refresh_token: refreshToken,
-    access_token: accessToken,
+    refreshToken: refreshToken,
+    accessToken: accessToken,
   };
 
   return response;
@@ -138,8 +138,37 @@ async function login(request, reply) {
   await updateUser(email, userData);
 
   const response = {
-    refresh_token: refreshToken,
-    access_token: accessToken,
+    refreshTtoken: refreshToken,
+    accessToken: accessToken,
+  };
+
+  return response;
+}
+
+async function logout(request, reply) {
+  const payload = request.payload;
+
+  const email = payload.email;
+  const accessToken = payload.accessToken;
+
+  const user = await getUser(email);
+  var userData = user.data();
+
+  if (!user.exists) {
+    throw Boom.badRequest("User not found!");
+  }
+  if (userData.accessToken != accessToken) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+
+  userData.refreshToken = null;
+  userData.accessToken = null;
+  userData.isActive = false;
+
+  await updateUser(email, userData);
+
+  const response = {
+    message: "User logged out!",
   };
 
   return response;
@@ -150,4 +179,5 @@ module.exports = {
   authCallbackHandler,
   register,
   login,
+  logout,
 };

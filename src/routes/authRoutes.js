@@ -1,4 +1,4 @@
-const { authHandler, authCallbackHandler, register, login } = require("../handlers/authHandlers");
+const { authHandler, authCallbackHandler, register, login, logout } = require("../handlers/authHandlers");
 
 const auth = [
   {
@@ -20,6 +20,11 @@ const auth = [
     method: "POST",
     path: "/auth/login",
     handler: login
+  },
+  {
+    method: "POST",
+    path: "/auth/logout",
+    handler: logout
   }
 ];
 
