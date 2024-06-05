@@ -1,4 +1,11 @@
-const { authHandler, authCallbackHandler, register, login, logout } = require("../handlers/authHandlers");
+const {
+  authHandler,
+  authCallbackHandler,
+  register,
+  login,
+  logout,
+  renew,
+} = require("../handlers/authHandlers");
 
 const auth = [
   {
@@ -14,18 +21,23 @@ const auth = [
   {
     method: "POST",
     path: "/auth/register",
-    handler: register
+    handler: register,
   },
   {
     method: "POST",
     path: "/auth/login",
-    handler: login
+    handler: login,
   },
   {
     method: "POST",
     path: "/auth/logout",
-    handler: logout
-  }
+    handler: logout,
+  },
+  {
+    method: "POST",
+    path: "/auth/renew",
+    handler: renew,
+  },
 ];
 
 module.exports = auth;
