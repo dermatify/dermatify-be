@@ -1,7 +1,10 @@
 const { google } = require("googleapis");
 const { authorizationURL, oauth2Client } = require("../config/oauth");
-const { mainCollection } = require("../config/userDB");
+const { saveUser, getUser, updateUser } = require("../config/userDB");
+const { checkValidEmail, createUserData } = require("../helpers/authHelpers");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const Boom = require("@hapi/boom");
 
 function authHandler(request, reply) {
   return reply.redirect(authorizationURL);
@@ -20,30 +23,152 @@ async function authCallbackHandler(request, reply) {
 
   const { data } = await oauth2.userinfo.get();
 
-  let user = await mainCollection.doc(data.id).get();
+  let user = getUser(data.email);
 
-  const refresh_token = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "7d",
-  });
+  const refreshToken = jwt.sign(
+    { email: data.email },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: "7d",
+    }
+  );
 
-  const access_token = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15m",
-  });
+  const accessToken = jwt.sign(
+    { email: data.email },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "15m",
+    }
+  );
 
-  var userData = {
-    ...data,
-    refresh_token: refresh_token,
-    access_token: access_token,
-    is_active: true,
-  };
+  const userData = createUserData(
+    data.name,
+    data.picture,
+    refreshToken,
+    accessToken,
+    null,
+    true
+  );
 
   if (!user.exists) {
-    await mainCollection.doc(data.id).set(userData);
+    saveUser(data.email, userData);
   }
 
   response = {
-    refresh_token: refresh_token,
-    access_token: access_token,
+    refreshToken: refreshToken,
+    accessToken: accessToken,
+  };
+
+  return response;
+}
+
+async function register(request, reply) {
+  const salt = await bcrypt.genSalt(10);
+  const payload = request.payload;
+
+  const name = payload.name;
+  const email = payload.email;
+  const password = payload.password;
+
+  if (!name || !email || !password) {
+    throw Boom.badRequest("Name, username, and password are required fields!");
+  }
+  if (!checkValidEmail(email)) {
+    throw Boom.badRequest("Email is invalid!");
+  }
+
+  let user = await getUser(email);
+
+  if (user.exists) {
+    throw Boom.badRequest("User already exists!");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  saveUser(
+    email,
+    createUserData(name, null, null, null, hashedPassword, false)
+  );
+
+  const response = {
+    message: "User created!",
+  };
+
+  return response;
+}
+
+async function login(request, reply) {
+  const payload = request.payload;
+
+  const email = payload.email;
+  const password = payload.password;
+
+  const user = await getUser(email);
+  var userData = user.data();
+
+  if (!user.exists) {
+    throw Boom.badRequest("User not found!");
+  }
+
+  const isValid = await bcrypt.compare(password, userData.hashedPassword);
+  if (!isValid) {
+    throw Boom.unauthorized("Invalid credentials!");
+  }
+
+  const refreshToken = jwt.sign(
+    { email: email },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: "7d",
+    }
+  );
+
+  const accessToken = jwt.sign(
+    { email: email },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "15m",
+    }
+  );
+
+  userData.refreshToken = refreshToken;
+  userData.accessToken = accessToken;
+  userData.isActive = true;
+
+  await updateUser(email, userData);
+
+  const response = {
+    refreshTtoken: refreshToken,
+    accessToken: accessToken,
+  };
+
+  return response;
+}
+
+async function logout(request, reply) {
+  const payload = request.payload;
+
+  const email = payload.email;
+  const accessToken = payload.accessToken;
+
+  const user = await getUser(email);
+  var userData = user.data();
+
+  if (!user.exists) {
+    throw Boom.badRequest("User not found!");
+  }
+  if (userData.accessToken != accessToken) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+
+  userData.refreshToken = null;
+  userData.accessToken = null;
+  userData.isActive = false;
+
+  await updateUser(email, userData);
+
+  const response = {
+    message: "User logged out!",
   };
 
   return response;
@@ -52,4 +177,7 @@ async function authCallbackHandler(request, reply) {
 module.exports = {
   authHandler,
   authCallbackHandler,
+  register,
+  login,
+  logout,
 };
