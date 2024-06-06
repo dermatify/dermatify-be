@@ -138,7 +138,7 @@ async function login(request, reply) {
   await updateUser(email, userData);
 
   const response = {
-    refreshTtoken: refreshToken,
+    refreshToken: refreshToken,
     accessToken: accessToken,
   };
 
@@ -174,10 +174,47 @@ async function logout(request, reply) {
   return response;
 }
 
+async function renew(request, reply) {
+  const payload = request.payload;
+
+  const email = payload.email;
+  const refreshToken = payload.refreshToken;
+
+  const user = await getUser(email);
+  var userData = user.data();
+
+  if (!user.exists) {
+    throw Boom.badRequest("User not found!");
+  }
+  if (userData.refreshToken != refreshToken) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+
+  const newAccessToken = jwt.sign(
+    { email: email },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "15m",
+    }
+  );
+
+  userData.accessToken = newAccessToken;
+
+  await updateUser(email, userData);
+
+  const response = {
+    message: "Access token updated!",
+    accessToken: newAccessToken,
+  };
+
+  return response;
+}
+
 module.exports = {
   authHandler,
   authCallbackHandler,
   register,
   login,
   logout,
+  renew,
 };
