@@ -1,4 +1,4 @@
-const { postPredictHandler } = require("../handlers/authHandlers");
+const { postPredictHandler } = require("../handlers/userHandlers");
 const userRoutes = [
   {
     path: "/predict",
