@@ -1,4 +1,4 @@
 var root = require("./rootRoutes");
 var auth = require("./authRoutes");
-
-module.exports = [].concat(root, auth);
+var user = require("./userRoutes");
+module.exports = [].concat(root, auth, user);
