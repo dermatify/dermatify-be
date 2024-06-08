@@ -3,7 +3,7 @@ const { getArticleHandler } = require("../handlers/userHandlers");
 const user = [
   {
     method: "GET",
-    path: "/article",
+    path: "/articles",
     handler: getArticleHandler,
   },
 ];
