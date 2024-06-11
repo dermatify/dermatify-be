@@ -2,7 +2,7 @@ const { updateProfileHandler } = require("../handlers/userHandlers");
 
 const userRoutes = [
   {
-    path: "/",
+    path: "/user/profile",
     method: "PUT",
     handler: updateProfileHandler,
   },

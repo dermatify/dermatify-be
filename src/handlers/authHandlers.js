@@ -210,6 +210,18 @@ async function renew(request, reply) {
   return response;
 }
 
+async function verify(request) {
+  const headers = request.headers;
+  const token = headers["authorization"].split(" ")[1];
+
+  try {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
 module.exports = {
   authHandler,
   authCallbackHandler,
@@ -217,4 +229,5 @@ module.exports = {
   login,
   logout,
   renew,
+  verify,
 };
