@@ -71,7 +71,7 @@ async function register(request, reply) {
   const password = payload.password;
 
   if (!name || !email || !password) {
-    throw Boom.badRequest("Name, username, and password are required fields!");
+    throw Boom.badRequest("Name, email, and password are required fields!");
   }
   if (!checkValidEmail(email)) {
     throw Boom.badRequest("Email is invalid!");
