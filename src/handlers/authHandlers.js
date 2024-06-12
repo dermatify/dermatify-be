@@ -220,9 +220,25 @@ async function verify(request, type) {
 
   try {
     if (type == "ACCESS_TOKEN") {
-      return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const email = decodedToken.email;
+
+      const user = await getUser(email);
+      var userData = user.data();
+
+      if (userData.accessToken == token) {
+        return decodedToken
+      }
     } else if (type == "REFRESH_TOKEN") {
-      return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+      const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+      const email = decodedToken.email;
+
+      const user = await getUser(email);
+      var userData = user.data();
+
+      if (userData.refreshToken == token) {
+        return decodedToken
+      }
     }
   } catch (error) {
     return "";
