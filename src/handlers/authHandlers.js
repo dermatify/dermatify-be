@@ -1,6 +1,6 @@
 const { google } = require("googleapis");
 const { authorizationURL, oauth2Client } = require("../config/oauth");
-const { saveUser, getUser, updateUser } = require("../config/userDB");
+const { saveUser, getUser, getUserData, updateUser } = require("../config/userDB");
 const { checkValidEmail, createUserData } = require("../helpers/authHelpers");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -103,8 +103,8 @@ async function login(request, reply) {
   const email = payload.email;
   const password = payload.password;
 
-  const user = await getUser(email);
-  var userData = user.data();
+  var user = await getUser(email)
+  var userData = await getUserData(email);
 
   if (!user.exists) {
     throw Boom.badRequest("User not found!");
@@ -151,10 +151,8 @@ async function logout(request, reply) {
   if (!decodedToken) {
     throw Boom.unauthorized("Invalid token!");
   }
-  const email = decodedToken.email;
-
-  const user = await getUser(email);
-  var userData = user.data();
+  var user = await getUser(decodedToken.email)
+  var userData = await getUserData(decodedToken.email)
 
   if (!user.exists) {
     throw Boom.badRequest("User not found!");
@@ -167,7 +165,7 @@ async function logout(request, reply) {
   userData.accessToken = null;
   userData.isActive = false;
 
-  await updateUser(email, userData);
+  await updateUser(decodedToken.email, userData);
 
   const response = {
     message: "User logged out!",
@@ -182,10 +180,9 @@ async function renew(request, reply) {
   if (!decodedToken) {
     throw Boom.unauthorized("Invalid token!");
   }
-  const email = decodedToken.email;
-
-  const user = await getUser(email);
-  var userData = user.data();
+  var email = decodedToken.email
+  var user = await getUser(email)
+  var userData = await getUserData(email)
 
   if (!user.exists) {
     throw Boom.badRequest("User not found!");
@@ -221,20 +218,14 @@ async function verify(request, type) {
   try {
     if (type == "ACCESS_TOKEN") {
       const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-      const email = decodedToken.email;
-
-      const user = await getUser(email);
-      var userData = user.data();
+      var userData = await getUserData(decodedToken.email)
 
       if (userData.accessToken == token) {
         return decodedToken
       }
     } else if (type == "REFRESH_TOKEN") {
       const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-      const email = decodedToken.email;
-
-      const user = await getUser(email);
-      var userData = user.data();
+      var userData = await getUserData(decodedToken.email)
 
       if (userData.refreshToken == token) {
         return decodedToken

@@ -1,4 +1,5 @@
 const { verify } = require("./authHandlers")
+const { saveUser, getUser, getUserData, updateUser } = require("../config/userDB");
 const Boom = require("@hapi/boom");
 
 async function updateProfileHandler(request, reply) {
@@ -6,7 +7,8 @@ async function updateProfileHandler(request, reply) {
   if (!token) {
     throw Boom.unauthorized("Invalid token!");
   }
-  return "MANTAP"
+  const userData = await getUserData(token.email);
+  return userData
 }
 
 module.exports = {

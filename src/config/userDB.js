@@ -12,6 +12,11 @@ async function getUser(email) {
   return user;
 }
 
+async function getUserData(email) {
+  const user = await getUser(email)
+  return user.data()
+}
+
 async function updateUser(email, data) {
   await mainCollection.doc(email).update(data);
 }
@@ -19,5 +24,6 @@ async function updateUser(email, data) {
 module.exports = {
   saveUser,
   getUser,
+  getUserData,
   updateUser,
 };
