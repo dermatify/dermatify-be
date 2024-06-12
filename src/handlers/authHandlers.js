@@ -146,10 +146,12 @@ async function login(request, reply) {
 }
 
 async function logout(request, reply) {
-  const payload = request.payload;
-
-  const email = payload.email;
-  const accessToken = payload.accessToken;
+  const accessToken = request.headers["authorization"].split(" ")[1];
+  const decodedToken = await verify(request, "ACCESS_TOKEN")
+  if (!decodedToken) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+  const email = decodedToken.email;
 
   const user = await getUser(email);
   var userData = user.data();
@@ -175,10 +177,12 @@ async function logout(request, reply) {
 }
 
 async function renew(request, reply) {
-  const payload = request.payload;
-
-  const email = payload.email;
-  const refreshToken = payload.refreshToken;
+  const refreshToken = request.headers["authorization"].split(" ")[1];
+  const decodedToken = await verify(request, "REFRESH_TOKEN")
+  if (!decodedToken) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+  const email = decodedToken.email;
 
   const user = await getUser(email);
   var userData = user.data();
@@ -210,15 +214,18 @@ async function renew(request, reply) {
   return response;
 }
 
-async function verify(request) {
+async function verify(request, type) {
   const headers = request.headers;
   const token = headers["authorization"].split(" ")[1];
 
   try {
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    return true;
+    if (type == "ACCESS_TOKEN") {
+      return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } else if (type == "REFRESH_TOKEN") {
+      return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    }
   } catch (error) {
-    return false;
+    return "";
   }
 }
 

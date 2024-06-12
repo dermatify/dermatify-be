@@ -2,7 +2,8 @@ const { verify } = require("./authHandlers")
 const Boom = require("@hapi/boom");
 
 async function updateProfileHandler(request, reply) {
-  if (!await verify(request)) {
+  const token = await verify(request, "ACCESS_TOKEN")
+  if (!token) {
     throw Boom.unauthorized("Invalid token!");
   }
   return "MANTAP"
