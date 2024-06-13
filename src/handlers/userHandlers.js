@@ -1,4 +1,5 @@
 const { supabase } = require("../config/supabase");
+const Boom = require("@hapi/boom");
 
 async function getArticleHandler(request, h) {
   try {
@@ -8,12 +9,18 @@ async function getArticleHandler(request, h) {
       .order("date", { ascending: false });
 
     if (error) {
-      return h.response({ status: "error", message: error.message }).code(500);
+      throw Boom.internal(
+        "Database error occurred while fetching articles: " + error.message
+      );
     }
 
-    return h.response({ status: "success", data }).code(200);
+    return h.response({ data }).code(200);
   } catch (error) {
-    return h.response({ status: "error", message: error.message }).code(500);
+    if (!error.isBoom) {
+      error = Boom.internal("An unexpected error occurred: " + error.message);
+    }
+
+    return h.response(error.output.payload).code(error.output.statusCode);
   }
 }
 
