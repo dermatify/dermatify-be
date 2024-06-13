@@ -138,6 +138,7 @@ async function login(request, reply) {
   await updateUser(email, userData);
 
   const response = {
+    name: userData.name,
     refreshToken: refreshToken,
     accessToken: accessToken,
   };
