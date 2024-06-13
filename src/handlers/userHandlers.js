@@ -9,18 +9,12 @@ async function getArticleHandler(request, h) {
       .order("date", { ascending: false });
 
     if (error) {
-      throw Boom.internal(
-        "Database error occurred while fetching articles: " + error.message
-      );
+      throw new Error("Database error: " + error.message);
     }
 
     return h.response({ data }).code(200);
   } catch (error) {
-    if (!error.isBoom) {
-      error = Boom.internal("An unexpected error occurred: " + error.message);
-    }
-
-    return h.response(error.output.payload).code(error.output.statusCode);
+    return Boom.internal("An unexpected error occurred: " + error.message);
   }
 }
 
