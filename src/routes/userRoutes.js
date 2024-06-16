@@ -1,11 +1,15 @@
-const { updateProfileHandler } = require("../handlers/userHandlers");
+const { getArticleHandler, updateProfileHandler } = require("../handlers/userHandlers");
 
-const userRoutes = [
+const user = [
+  {
+    method: "GET",
+    path: "/articles",
+    handler: getArticleHandler,
+  },
   {
     path: "/user/profile",
     method: "PUT",
     handler: updateProfileHandler,
   },
 ];
-
-module.exports = userRoutes;
+module.exports = user;
