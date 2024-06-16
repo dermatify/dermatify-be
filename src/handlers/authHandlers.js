@@ -1,6 +1,6 @@
 const { google } = require("googleapis");
 const { authorizationURL, oauth2Client } = require("../config/oauth");
-const { saveUser, getUser, updateUser } = require("../config/userDB");
+const { saveUser, getUser, getUserData, updateUser } = require("../config/userDB");
 const { checkValidEmail, createUserData } = require("../helpers/authHelpers");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -71,7 +71,7 @@ async function register(request, reply) {
   const password = payload.password;
 
   if (!name || !email || !password) {
-    throw Boom.badRequest("Name, username, and password are required fields!");
+    throw Boom.badRequest("Name, email, and password are required fields!");
   }
   if (!checkValidEmail(email)) {
     throw Boom.badRequest("Email is invalid!");
@@ -103,8 +103,8 @@ async function login(request, reply) {
   const email = payload.email;
   const password = payload.password;
 
-  const user = await getUser(email);
-  var userData = user.data();
+  var user = await getUser(email)
+  var userData = await getUserData(email);
 
   if (!user.exists) {
     throw Boom.badRequest("User not found!");
@@ -138,6 +138,7 @@ async function login(request, reply) {
   await updateUser(email, userData);
 
   const response = {
+    name: userData.name,
     refreshToken: refreshToken,
     accessToken: accessToken,
   };
@@ -146,13 +147,13 @@ async function login(request, reply) {
 }
 
 async function logout(request, reply) {
-  const payload = request.payload;
-
-  const email = payload.email;
-  const accessToken = payload.accessToken;
-
-  const user = await getUser(email);
-  var userData = user.data();
+  const accessToken = request.headers["authorization"].split(" ")[1];
+  const decodedToken = await verify(request, "ACCESS_TOKEN")
+  if (!decodedToken) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+  var user = await getUser(decodedToken.email)
+  var userData = await getUserData(decodedToken.email)
 
   if (!user.exists) {
     throw Boom.badRequest("User not found!");
@@ -165,7 +166,7 @@ async function logout(request, reply) {
   userData.accessToken = null;
   userData.isActive = false;
 
-  await updateUser(email, userData);
+  await updateUser(decodedToken.email, userData);
 
   const response = {
     message: "User logged out!",
@@ -175,13 +176,14 @@ async function logout(request, reply) {
 }
 
 async function renew(request, reply) {
-  const payload = request.payload;
-
-  const email = payload.email;
-  const refreshToken = payload.refreshToken;
-
-  const user = await getUser(email);
-  var userData = user.data();
+  const refreshToken = request.headers["authorization"].split(" ")[1];
+  const decodedToken = await verify(request, "REFRESH_TOKEN")
+  if (!decodedToken) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+  var email = decodedToken.email
+  var user = await getUser(email)
+  var userData = await getUserData(email)
 
   if (!user.exists) {
     throw Boom.badRequest("User not found!");
@@ -210,6 +212,31 @@ async function renew(request, reply) {
   return response;
 }
 
+async function verify(request, type) {
+  const headers = request.headers;
+  const token = headers["authorization"].split(" ")[1];
+
+  try {
+    if (type == "ACCESS_TOKEN") {
+      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      var userData = await getUserData(decodedToken.email)
+
+      if (userData.accessToken == token) {
+        return decodedToken
+      }
+    } else if (type == "REFRESH_TOKEN") {
+      const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+      var userData = await getUserData(decodedToken.email)
+
+      if (userData.refreshToken == token) {
+        return decodedToken
+      }
+    }
+  } catch (error) {
+    return "";
+  }
+}
+
 module.exports = {
   authHandler,
   authCallbackHandler,
@@ -217,4 +244,5 @@ module.exports = {
   login,
   logout,
   renew,
+  verify,
 };

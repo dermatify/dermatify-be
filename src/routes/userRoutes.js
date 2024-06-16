@@ -1,5 +1,16 @@
-const { postPredictHandler } = require("../handlers/userHandlers");
-const userRoutes = [
+const { getArticleHandler, updateProfileHandler, postPredictHandler } = require("../handlers/userHandlers");
+
+const user = [
+  {
+    method: "GET",
+    path: "/articles",
+    handler: getArticleHandler,
+  },
+  {
+    path: "/user/profile",
+    method: "PUT",
+    handler: updateProfileHandler,
+  },
   {
     path: "/predict",
     method: "POST",
@@ -14,5 +25,4 @@ const userRoutes = [
     },
   },
 ];
-
-module.exports = userRoutes;
+module.exports = user;
