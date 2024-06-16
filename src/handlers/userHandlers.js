@@ -1,11 +1,9 @@
-const { verify } = require("./authHandlers")
-const { getUserData, updateUser } = require("../config/userDB");
+const { verify } = require("./authHandlers");
+const { getUserData, updateUser, storePrediction } = require("../config/userDB");
 const { supabase } = require("../config/supabase");
 const Boom = require("@hapi/boom");
 const predictClassification = require("../services/inferenceService");
 const crypto = require("crypto");
-const storeData = require("../services/storeData");
-
 
 async function updateProfileHandler(request, reply) {
   const token = await verify(request, "ACCESS_TOKEN")
@@ -38,7 +36,13 @@ async function getArticleHandler(request, h) {
     return Boom.internal("An unexpected error occurred: " + error.message);
   }
 }
+
 async function postPredictHandler(request, h) {
+  const token = await verify(request, "ACCESS_TOKEN");
+  if (!token) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+
   const { image } = request.payload;
   const { model } = request.server.app;
   const { confidenceScore } = await predictClassification(model, image);
@@ -51,7 +55,8 @@ async function postPredictHandler(request, h) {
     createdAt: createdAt,
   };
 
-  await storeData(id, data);
+  // await storeData(id, data);
+  await storePrediction(token.email, id, data)
 
   const response = h.response({
     status: "success",
@@ -67,5 +72,3 @@ module.exports = {
   updateProfileHandler,
   postPredictHandler,
 };
-
-
