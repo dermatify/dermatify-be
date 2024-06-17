@@ -1,4 +1,9 @@
-const { getArticleHandler, updateProfileHandler, postPredictHandler } = require("../handlers/userHandlers");
+const {
+  getArticleHandler,
+  updateProfileHandler,
+  postPredictHandler,
+  getRecentPredictionsHandler,
+} = require("../handlers/userHandlers");
 
 const user = [
   {
@@ -24,5 +29,11 @@ const user = [
       },
     },
   },
+  {
+    path: "/prediction/recents",
+    method: "GET",
+    handler: getRecentPredictionsHandler,
+  },
 ];
 module.exports = user;
+
