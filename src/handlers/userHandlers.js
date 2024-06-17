@@ -1,23 +1,38 @@
 const { verify } = require("./authHandlers");
-const { getUserData, updateUser, storePrediction } = require("../config/userDB");
+const {
+  getUserData,
+  updateUser,
+  storePrediction,
+  getPredictions,
+} = require("../config/userDB");
 const { supabase } = require("../config/supabase");
 const Boom = require("@hapi/boom");
 const predictClassification = require("../services/inferenceService");
 const crypto = require("crypto");
 
 async function updateProfileHandler(request, reply) {
-  const token = await verify(request, "ACCESS_TOKEN")
+  const token = await verify(request, "ACCESS_TOKEN");
   if (!token) {
     throw Boom.unauthorized("Invalid token!");
   }
   const userData = await getUserData(token.email);
 
-  const payload = request.payload
-  userData.name = payload.name
+  const payload = request.payload;
+  userData.name = payload.name;
 
-  await updateUser(token.email, userData)
+  await updateUser(token.email, userData);
 
-  return userData
+  return userData;
+}
+
+async function getRecentPredictionsHandler(request, h) {
+  const token = await verify(request, "ACCESS_TOKEN");
+  if (!token) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+  const predictions = await getPredictions(token.email);
+
+  return predictions;
 }
 
 async function getArticleHandler(request, h) {
@@ -56,7 +71,7 @@ async function postPredictHandler(request, h) {
   };
 
   // await storeData(id, data);
-  await storePrediction(token.email, id, data)
+  await storePrediction(token.email, id, data);
 
   const response = h.response({
     status: "success",
@@ -71,4 +86,5 @@ module.exports = {
   getArticleHandler,
   updateProfileHandler,
   postPredictHandler,
+  getRecentPredictionsHandler,
 };
