@@ -10,9 +10,9 @@ const {
 } = require("../config/userDB");
 const { supabase } = require("../config/supabase");
 const Boom = require("@hapi/boom");
-const predictClassification = require("../services/inferenceService");
 const crypto = require("crypto");
 const axios = require("axios");
+
 async function updateProfileHandler(request, reply) {
   const token = await verify(request, "ACCESS_TOKEN");
   if (!token) {
