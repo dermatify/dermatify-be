@@ -52,6 +52,11 @@ async function postPredictHandler(request, h) {
   }
 
   const { image } = request.payload;
+
+  if (!image) {
+    throw Boom.badRequest("Image is Required");
+  }
+
   try {
     const response = await axios.post(process.env.PREDICT_PATH, image, {
       headers: {
@@ -60,6 +65,7 @@ async function postPredictHandler(request, h) {
     });
     console.log("response", response);
     console.log("data", response.data);
+    return response.code(200);
   } catch (error) {
     return Boom.internal(error, response);
   }
@@ -77,13 +83,13 @@ async function postPredictHandler(request, h) {
   // await storeData(id, data);
   await storePrediction(token.email, id, data);
 
-  const response = h.response({
+  const result = h.response({
     status: "success",
     message: "Model is predicted successfully.",
     data,
   });
-  response.code(201);
-  return response;
+  result.code(201);
+  return result;
 }
 
 module.exports = {
