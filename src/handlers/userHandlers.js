@@ -8,6 +8,7 @@ const {
   getUserData,
   updateUser,
   storePrediction,
+  getPredictions,
 } = require("../config/userDB");
 const { supabase } = require("../config/supabase");
 const Boom = require("@hapi/boom");
