@@ -1,0 +1,41 @@
+{
+  "name": "capstone",
+  "version": "1.0.0",
+  "description": "dermatify-be",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon ./src/server/server.js",
+    "start": "node ./src/server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dermatify/dermatify-be.git"
+  },
+  "keywords": [
+    "Healthcare"
+  ],
+  "author": "Daffa Muhammad Faizan & Annava Wisha Sikoko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dermatify/dermatify-be/issues"
+  },
+  "homepage": "https://github.com/dermatify/dermatify-be#readme",
+  "dependencies": {
+    "@google-cloud/firestore": "^7.7.0",
+    "@hapi/boom": "^10.0.1",
+    "@hapi/hapi": "^21.3.9",
+    "@supabase/supabase-js": "^2.43.4",
+    "@tensorflow/tfjs-node": "^4.19.0",
+    "axios": "^1.7.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "form-data": "^4.0.0",
+    "googleapis": "^137.1.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  }
+}
