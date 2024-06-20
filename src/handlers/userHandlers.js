@@ -53,11 +53,18 @@ async function postPredictHandler(request, h) {
 
   const { image } = request.payload;
   try {
-    const response = await axios.post(process.env.PREDICT_PATH, image);
-    console.log(response);
-  } catch (error) {}
-
-  const { confidenceScore } = await predictClassification(model, image);
+    const response = await axios.post(process.env.PREDICT_PATH, image, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    console.log("response", response);
+    console.log("data", response.data);
+  } catch (error) {
+    return Boom.internal(error, response);
+  }
+  console.log("lewat sini ga si");
+  // const { confidenceScore } = await predictClassification(model, image);
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
 
