@@ -12,6 +12,7 @@ const { supabase } = require("../config/supabase");
 const Boom = require("@hapi/boom");
 const crypto = require("crypto");
 const axios = require("axios");
+const FormData = require('form-data');
 
 async function updateProfileHandler(request, reply) {
   const token = await verify(request, "ACCESS_TOKEN");
@@ -56,9 +57,11 @@ async function postPredictHandler(request, h) {
   if (!image) {
     throw Boom.badRequest("Image is Required");
   }
+  const formData = new FormData();
+  formData.append("image", image);
 
   try {
-    const response = await axios.post(process.env.PREDICT_PATH, image, {
+    const response = await axios.post(process.env.PREDICT_PATH, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -67,7 +70,7 @@ async function postPredictHandler(request, h) {
     console.log("data", response.data);
     return response.code(200);
   } catch (error) {
-    return Boom.internal(error, response);
+    return Boom.internal(error);
   }
   console.log("lewat sini ga si");
   // const { confidenceScore } = await predictClassification(model, image);
