@@ -1,5 +1,6 @@
 require("dotenv").config({
-  path: [".env.dev"],
+  path: [".env"],
+  override: true,
 });
 
 const { verify } = require("./authHandlers");
@@ -40,6 +41,16 @@ async function getArticleHandler(request, h) {
   } catch (error) {
     return Boom.internal("An unexpected error occurred: " + error.message);
   }
+}
+
+async function getRecentPredictionsHandler(request, h) {
+  const token = await verify(request, "ACCESS_TOKEN");
+  if (!token) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+  const predictions = await getPredictions(token.email);
+
+  return predictions;
 }
 
 async function postPredictHandler(request, h) {
@@ -117,4 +128,5 @@ module.exports = {
   getArticleHandler,
   updateProfileHandler,
   postPredictHandler,
+  getRecentPredictionsHandler,
 };

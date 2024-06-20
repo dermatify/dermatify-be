@@ -1,5 +1,6 @@
 require("dotenv").config({
-  path: [".env.dev"],
+  path: [".env"],
+  override: true,
 });
 
 const { google } = require("googleapis");
@@ -7,13 +8,10 @@ const { google } = require("googleapis");
 const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
-  process.env.GOOGLE_AUTH_CALLBACK_URL,
+  process.env.GOOGLE_AUTH_CALLBACK_URL
 );
 
-const scopes = [
-  process.env.GOOGLE_APIS_EMAIL,
-  process.env.GOOGLE_APIS_PROFILE,
-];
+const scopes = [process.env.GOOGLE_APIS_EMAIL, process.env.GOOGLE_APIS_PROFILE];
 
 const authorizationURL = oauth2Client.generateAuthUrl({
   access_type: "offline",

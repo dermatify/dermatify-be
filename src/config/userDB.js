@@ -36,10 +36,16 @@ async function storePrediction(email, predictionId, predictionData) {
   });
 }
 
+async function getPredictions(email) {
+  const userData = await getUserData(email);
+  return userData.predictions;
+}
+
 module.exports = {
   saveUser,
   getUser,
   getUserData,
   updateUser,
   storePrediction,
+  getPredictions,
 };

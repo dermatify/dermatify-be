@@ -1,5 +1,6 @@
 require("dotenv").config({
-  path: [".env.dev"],
+  path: [".env"],
+  override: true,
 });
 const Hapi = require("@hapi/hapi");
 const routes = require("../routes");
