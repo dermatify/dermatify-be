@@ -1,9 +1,9 @@
 require("dotenv").config({
-  path: [".env.dev"],
+  path: [".env"],
+  override: true,
 });
 const Hapi = require("@hapi/hapi");
 const routes = require("../routes");
-const loadModel = require("../services/loadModel");
 const InputError = require("../exceptions/InputError");
 
 (async () => {
@@ -16,9 +16,6 @@ const InputError = require("../exceptions/InputError");
       },
     },
   });
-
-  const model = await loadModel();
-  server.app.model = model;
 
   server.route(routes);
 
