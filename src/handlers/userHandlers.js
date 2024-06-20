@@ -1,30 +1,37 @@
-const { verify } = require("./authHandlers")
-const { getUserData, updateUser } = require("../config/userDB");
+require("dotenv").config({
+  path: [".env.dev"],
+});
+
+const { verify } = require("./authHandlers");
+const {
+  getUserData,
+  updateUser,
+  storePrediction,
+} = require("../config/userDB");
 const { supabase } = require("../config/supabase");
 const Boom = require("@hapi/boom");
+const crypto = require("crypto");
+const axios = require("axios");
+const FormData = require("form-data");
 
 async function updateProfileHandler(request, reply) {
-  const token = await verify(request, "ACCESS_TOKEN")
+  const token = await verify(request, "ACCESS_TOKEN");
   if (!token) {
     throw Boom.unauthorized("Invalid token!");
   }
   const userData = await getUserData(token.email);
 
-  const payload = request.payload
-  userData.name = payload.name
+  const payload = request.payload;
+  userData.name = payload.name;
 
-  await updateUser(token.email, userData)
+  await updateUser(token.email, userData);
 
-  return userData
+  return userData;
 }
 
 async function getArticleHandler(request, h) {
   try {
-    const { data, error } = await supabase
-      .from("articles")
-      .select("*")
-      .order("date", { ascending: false });
-
+    const { data, error } = await supabase.from("articles").select("*");
     if (error) {
       throw new Error("Database error: " + error.message);
     }
@@ -35,7 +42,79 @@ async function getArticleHandler(request, h) {
   }
 }
 
+async function postPredictHandler(request, h) {
+  const token = await verify(request, "ACCESS_TOKEN");
+  if (!token) {
+    throw Boom.unauthorized("Invalid token!");
+  }
+
+  const { image } = request.payload;
+
+  if (!image) {
+    throw Boom.badRequest("Image is Required");
+  }
+
+  let imageBuffer;
+  let contentType;
+  if (typeof image === "string" && image.startsWith("data:image")) {
+    // Handle base64 encoded image
+    const [typeInfo, base64Image] = image.split(";base64,");
+    contentType = typeInfo.split(":")[1];
+    imageBuffer = Buffer.from(base64Image, "base64");
+  } else if (Buffer.isBuffer(image)) {
+    // Handle buffer image
+    imageBuffer = image;
+    contentType = "application/octet-stream"; // Default content type for buffer, should be updated accordingly
+  } else {
+    throw Boom.badRequest("Invalid image format");
+  }
+  const formData = new FormData();
+  formData.append("image", imageBuffer, {
+    filename: "image",
+    contentType: contentType,
+  });
+
+  try {
+    const response = await axios.post(process.env.PREDICT_PATH, formData, {
+      headers: {
+        ...formData.getHeaders(),
+      },
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
+
+    const responseData = response.data;
+    const id = crypto.randomUUID();
+    const createdAt = new Date().toISOString();
+
+    const data = {
+      id: id,
+      createdAt: createdAt,
+      issue: responseData.issue,
+      score: responseData.score,
+    };
+
+    await storePrediction(token.email, id, data);
+
+    const result = h.response({
+      status: "success",
+      message: "Model predicted successfully.",
+      data,
+    });
+    result.code(201);
+    return result;
+  } catch (error) {
+    return Boom.internal(
+      "An unexpected error occurred during prediction",
+      error
+    );
+  }
+}
+
 module.exports = {
   getArticleHandler,
-  updateProfileHandler
+  updateProfileHandler,
+  postPredictHandler,
 };

@@ -13,12 +13,27 @@ async function getUser(email) {
 }
 
 async function getUserData(email) {
-  const user = await getUser(email)
-  return user.data()
+  const user = await getUser(email);
+  return user.data();
 }
 
 async function updateUser(email, data) {
   await mainCollection.doc(email).update(data);
+}
+
+async function storePrediction(email, predictionId, predictionData) {
+  const userDoc = mainCollection.doc(email);
+  const user = await getUserData(email);
+
+  if (!user.predictions) {
+    user.predictions = {};
+  }
+
+  user.predictions[predictionId] = predictionData;
+
+  await userDoc.update({
+    predictions: user.predictions,
+  });
 }
 
 module.exports = {
@@ -26,4 +41,5 @@ module.exports = {
   getUser,
   getUserData,
   updateUser,
+  storePrediction,
 };
