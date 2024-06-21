@@ -131,6 +131,7 @@ Follow these steps to run the project:
 3. `POST` to endpoint `/auth/logout` with the header:
 
 **Request Header**
+
 Bearer Token Authentication with `Access token`
 
 **Response**
@@ -164,6 +165,7 @@ Bearer Token Authentication with `Access token`
 4. `POST` to endpoint `/auth/renew` with the header:
 
 **Request Header**
+
 Bearer Token Authentication with `Refresh token`
 
 **Response**
@@ -206,6 +208,7 @@ Bearer Token Authentication with `Refresh token`
 ```
 
 **Request Header**
+
 Bearer Token Authentication with `Access token`
 
 **Response**
@@ -226,6 +229,7 @@ Bearer Token Authentication with `Access token`
 6. `GET` to endpoint `/article` with the headers:
 
 **Request Header**
+
 Bearer Token Authentication with `Access token`
 
 **Response**
@@ -268,6 +272,7 @@ Bearer Token Authentication with `Access token`
 7. `POST` to endpoint `/predict` with the request body `multiform/form-data` and headers:
 
 #### Request Body
+
 Content-Type: multipart/form-data
 
 Request file example:
@@ -275,6 +280,7 @@ Request file example:
 By uploading an image file
 
 **Request Header**
+
 Bearer Token Authentication with `Access token`
 
 #### Example of response body
