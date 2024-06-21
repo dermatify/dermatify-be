@@ -22,7 +22,7 @@ Follow these steps to run the project:
 
 ## Endpoints
 
-### Register
+## Register
 
 1. `POST` to endpoint `/auth/register` with the body:
 
@@ -86,7 +86,7 @@ Follow these steps to run the project:
 }
 ```
 
-### Login
+## Login
 
 2. `POST` to endpoint `/auth/login` with the body:
 
@@ -126,7 +126,7 @@ Follow these steps to run the project:
 }
 ```
 
-### Logout
+## Logout
 
 3. `POST` to endpoint `/auth/logout` with the header:
 
@@ -159,7 +159,7 @@ Bearer Token Authentication with `Access token`
 }
 ```
 
-### Logout
+## Logout
 
 4. `POST` to endpoint `/auth/renew` with the header:
 
@@ -193,7 +193,7 @@ Bearer Token Authentication with `Refresh token`
 }
 ```
 
-### Edit Profile
+## Edit Profile
 
 5. `PUT` to endpoint `/user/profile` with the body:
 
@@ -221,7 +221,7 @@ Bearer Token Authentication with `Access token`
 }
 ```
 
-### Fetch Articles
+## Fetch Articles
 
 6. `GET` to endpoint `/article` with the headers:
 
@@ -264,7 +264,7 @@ Bearer Token Authentication with `Access token`
 }
 ```
 
-### Predict
+## Predict
 7. `POST` to endpoint `/predict` with the request body `multiform/form-data` and headers:
 
 #### Request Body
